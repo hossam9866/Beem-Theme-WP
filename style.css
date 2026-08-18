@@ -1,0 +1,12 @@
+/*
+Theme Name: Beem360 Modern Theme
+Theme URI: https://example.com
+Author: Codex
+Description: Responsive Beem 360 style theme built around reusable shortcodes, section controls, RTL/LTR support, and a built-in contact workflow with WordPress dashboard management.
+Version: 1.0.0
+Requires at least: 6.0
+Requires PHP: 8.0
+Text Domain: beem360
+*/
+
+@import url("assets/css/beem-theme.css");
