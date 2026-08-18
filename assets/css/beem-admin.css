@@ -1,0 +1,33 @@
+.beem-admin-wrap {
+    margin-top: 16px;
+}
+
+.beem-admin-wrap textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.beem-sortable-list .list-group-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.beem-admin-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 1100px) {
+    .beem-admin-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.beem-admin-card h2 {
+    margin-top: 0;
+}
+
+.beem-admin-card .beem-admin-subtitle {
+    margin-bottom: 12px;
+    color: #556;
+}
