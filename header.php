@@ -1,48 +1,26 @@
-<!doctype html>
-<html <?php language_attributes(); ?>>
-<head>
-    <meta charset="<?php bloginfo('charset'); ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <?php wp_head(); ?>
-</head>
-<?php
-$body_class = beem360_is_rtl() ? 'beem-rtl' : '';
-?>
-<body <?php body_class($body_class); ?>>
-<a class="skip-link screen-reader-text" href="#beem-main-content"><?php esc_html_e('Skip to content', 'beem360'); ?></a>
-
-<header class="beem-header">
-    <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <a href="<?php echo esc_url(home_url('/')); ?>" class="beem-brand d-flex align-items-center">
-            <img src="<?php echo esc_url(beem360_get_data()['logo_url']); ?>" alt="<?php echo esc_attr(beem360_localize_value(beem360_get_data()['copy']['brand_name'], beem360_language())); ?>">
-            <span><?php echo esc_html(beem360_localize_value(beem360_get_data()['copy']['brand_name'], beem360_language())); ?></span>
-        </a>
-
-        <button class="btn btn-outline-primary d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#beemMainMenu" aria-controls="beemMainMenu" aria-expanded="false" aria-label="<?php esc_attr_e('Menu', 'beem360'); ?>">
-            <i class="bi bi-list"></i> <?php echo esc_html(beem360_localize_value(beem360_get_data()['copy']['menu_label'], beem360_language())); ?>
-        </button>
-
-        <div class="collapse d-lg-flex align-items-center justify-content-between flex-grow-1 gap-3" id="beemMainMenu">
-            <ul class="nav">
-                <?php echo beem360_section_menu_links(); ?>
-            </ul>
-            <div class="beem-header-actions d-flex gap-2">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#beem-contact-modal" data-type="request">
-                    <?php echo esc_html(beem360_localize_value(beem360_get_data()['copy']['hero_request_btn'], beem360_language())); ?>
-                </button>
-                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#beem-contact-modal" data-type="contact">
-                    <?php echo esc_html(beem360_localize_value(beem360_get_data()['copy']['header_contact'], beem360_language())); ?>
-                </button>
-                <a href="<?php echo esc_url(beem360_localize_value(beem360_get_data()['copy']['hero_login_url'], beem360_language())); ?>" class="btn btn-link">
-                    <?php echo esc_html(beem360_localize_value(beem360_get_data()['copy']['header_login'], beem360_language())); ?>
-                </a>
-            </div>
-            <?php $langs = beem360_language_switcher(); ?>
-            <?php if (! empty($langs)) : ?>
-                <?php echo $langs; ?>
-            <?php endif; ?>
-        </div>
+<?php if (!defined('ABSPATH')) { exit; } ?><!doctype html>
+<html <?php language_attributes(); ?> dir="<?php echo beem360_lang() === 'ar' ? 'rtl' : 'ltr'; ?>">
+<head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width,initial-scale=1"><?php wp_head(); ?></head>
+<body <?php body_class(); ?>><?php wp_body_open(); ?>
+<nav id="beemNav" class="beem-nav navbar navbar-expand-lg fixed-top" aria-label="<?php esc_attr_e('Primary navigation','beem360'); ?>">
+  <div class="container-fluid px-lg-5">
+    <a class="navbar-brand beem-brand" href="<?php echo esc_url(home_url('/')); ?>">
+      <?php if (has_custom_logo()) { the_custom_logo(); } else { ?><img src="<?php echo beem360_asset('01-beem-360.png'); ?>" alt="Beem 360"><b>Beem <i>360</i></b><?php } ?>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#beemNavLinks" aria-controls="beemNavLinks" aria-expanded="false"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="beemNavLinks">
+      <ul class="navbar-nav me-auto ms-lg-5 beem-nav-links">
+        <li class="nav-item"><a class="nav-link" href="#platform"><?php echo esc_html(beem360_lang()==='ar'?'المنصة':(beem360_lang()==='fr'?'Plateforme':'Platform')); ?></a></li>
+        <li class="nav-item"><a class="nav-link" href="#features"><?php echo esc_html(beem360_lang()==='ar'?'المزايا':(beem360_lang()==='fr'?'Fonctionnalités':'Features')); ?></a></li>
+        <li class="nav-item"><a class="nav-link" href="#ai"><?php echo esc_html(beem360_lang()==='ar'?'رؤى الذكاء الاصطناعي':(beem360_lang()==='fr'?'Insights IA':'AI Insights')); ?></a></li>
+        <li class="nav-item"><a class="nav-link" href="#workflow"><?php echo esc_html(beem360_lang()==='ar'?'سير العمل':(beem360_lang()==='fr'?'Flux de travail':'Workflow')); ?></a></li>
+      </ul>
+      <div class="beem-nav-actions d-flex align-items-center gap-2">
+        <?php echo beem360_language_links(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        <a class="beem-login d-none d-xl-inline" href="<?php echo esc_url(beem360_options()['login_url']); ?>"><?php echo esc_html(beem360_lang()==='ar'?'تسجيل الدخول':(beem360_lang()==='fr'?'Connexion':'Log in')); ?></a>
+        <button class="beem-btn beem-btn-sm" data-beem-modal="request"><?php echo esc_html(beem360_t('hero_primary')); ?> <i class="bi bi-arrow-up-right"></i></button>
+      </div>
     </div>
-</header>
-
-<main id="beem-main-content">
+  </div>
+</nav>
+<main id="content">

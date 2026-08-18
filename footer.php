@@ -1,23 +1,8 @@
-    </main>
-    <footer class="beem-theme-footer">
-        <div class="container">
-            <div class="beem-footer-grid">
-                <div>
-                    <img src="<?php echo esc_url(beem360_get_data()['logo_url']); ?>" alt="<?php echo esc_attr(beem360_localize_value(beem360_get_data()['copy']['brand_name'], beem360_language())); ?>" class="mb-2" width="150">
-                    <p class="mb-2"><?php echo esc_html(beem360_localize_value(beem360_get_data()['copy']['platform_text'], beem360_language())); ?></p>
-                </div>
-                <div>
-                    <a href="<?php echo esc_url(home_url('/')); ?>" class="d-block"><?php esc_html_e('Home', 'beem360'); ?></a>
-                    <a href="<?php echo esc_url(home_url('/')); ?>#<?php echo esc_attr(beem360_anchor_for('platform')); ?>" class="d-block"><?php esc_html_e('Platform', 'beem360'); ?></a>
-                    <a href="<?php echo esc_url(home_url('/')); ?>#<?php echo esc_attr(beem360_anchor_for('features')); ?>" class="d-block"><?php esc_html_e('Features', 'beem360'); ?></a>
-                </div>
-                <div>
-                    <a href="#beem-contact-modal" data-bs-toggle="modal" data-type="contact" class="btn btn-sm btn-light"><?php echo esc_html(beem360_localize_value(beem360_get_data()['copy']['header_contact'], beem360_language())); ?></a>
-                </div>
-            </div>
-            <p class="mb-0 mt-3">&copy; <?php echo esc_html(date_i18n('Y')); ?> Beem 360. <?php echo esc_html(beem360_localize_value(beem360_get_data()['copy']['footer_rights'], beem360_language())); ?></p>
-        </div>
-    </footer>
-    <?php wp_footer(); ?>
-</body>
-</html>
+</main>
+<footer class="beem-footer">
+  <a class="beem-brand" href="<?php echo esc_url(home_url('/')); ?>"><img src="<?php echo beem360_asset('01-beem-360.png'); ?>" alt=""><b>Beem <i>360</i></b></a>
+  <span>© <?php echo esc_html(wp_date('Y')); ?> Beem 360. <?php echo esc_html(beem360_lang()==='ar'?'جميع الحقوق محفوظة.':(beem360_lang()==='fr'?'Tous droits réservés.':'All rights reserved.')); ?></span>
+  <div class="beem-footer-links"><a href="<?php echo esc_url(beem360_options()['terms_url']); ?>">Terms</a><a href="<?php echo esc_url(beem360_options()['privacy_url']); ?>">Privacy</a><button data-beem-modal="contact">Contact</button></div>
+</footer>
+<?php get_template_part('template-parts/inquiry-modals'); ?>
+<?php wp_footer(); ?></body></html>

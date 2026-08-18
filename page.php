@@ -1,14 +1,1 @@
-<?php get_header(); ?>
-
-<div class="container py-5">
-    <?php while (have_posts()) : the_post(); ?>
-        <article <?php post_class(); ?>>
-            <h1><?php the_title(); ?></h1>
-            <div class="beem-content">
-                <?php the_content(); ?>
-            </div>
-        </article>
-    <?php endwhile; ?>
-</div>
-
-<?php get_footer(); ?>
+<?php get_header(); ?><section class="beem-content container py-5 mt-5"><?php while (have_posts()) : the_post(); ?><article <?php post_class(); ?>><h1><?php the_title(); ?></h1><?php the_content(); ?></article><?php endwhile; ?></section><?php get_footer();
