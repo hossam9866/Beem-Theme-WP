@@ -41,7 +41,7 @@ function beem360_default_items(): array {
             ['icon'=>'bi-people','label'=>$t('Team','الفريق','Équipe')],['icon'=>'bi-kanban','label'=>$t('Projects','المشاريع','Projets')],['icon'=>'bi-lightbulb','label'=>$t('Insights','الرؤى','Insights')],['icon'=>'bi-gear','label'=>$t('Automation','الأتمتة','Automatisation')],['icon'=>'bi-graph-up-arrow','label'=>$t('Performance','الأداء','Performance')],
         ],
         'features' => [
-            ['id'=>'ai','icon'=>'bi-stars','color'=>'blue','tag'=>$t('AI INSIGHTS','رؤى الذكاء الاصطناعي','INSIGHTS IA'),'title'=>$t('From work data to decisions — faster.','من بيانات العمل إلى القرار — أسرع.','Des données aux décisions — plus vite.'),'text'=>$t('Beem 360 turns daily team activity into smart reports for a project, a portfolio, or an employee.','يحوّل Beem 360 نشاط الفريق اليومي إلى تقارير ذكية للمشروع أو المحفظة أو الموظف.','Beem 360 transforme l’activité quotidienne en rapports intelligents.'),'bullets'=>$t("AI reports for any project\nEmployee wins, delays and current work\nSuggestions and risk detection","تقارير ذكية لأي مشروع\nإنجازات الموظف وتأخيراته وعمله الحالي\nاقتراحات واكتشاف المخاطر","Rapports IA pour chaque projet\nRéussites, retards et travail en cours\nSuggestions et détection des risques"),'image'=>$asset('13-ai-insight.jpg'),'image_secondary'=>$asset('14-ai-progress-summary.jpg'),'url'=>''],
+            ['id'=>'ai','icon'=>'bi-stars','color'=>'blue','tag'=>$t('AI INSIGHTS','رؤى الذكاء الاصطناعي','INSIGHTS IA'),'title'=>$t('From work data to decisions — faster.','من بيانات العمل إلى القرار — أسرع.','Des données aux décisions — plus vite.'),'text'=>$t('Beem View 360 turns daily team activity into smart reports for a project, a portfolio, or an employee.','يحوّل Beem View 360 نشاط الفريق اليومي إلى تقارير ذكية للمشروع أو المحفظة أو الموظف.','Beem View 360 transforme l’activité quotidienne en rapports intelligents.'),'bullets'=>$t("AI reports for any project\nEmployee wins, delays and current work\nSuggestions and risk detection","تقارير ذكية لأي مشروع\nإنجازات الموظف وتأخيراته وعمله الحالي\nاقتراحات واكتشاف المخاطر","Rapports IA pour chaque projet\nRéussites, retards et travail en cours\nSuggestions et détection des risques"),'image'=>$asset('13-ai-insight.jpg'),'image_secondary'=>$asset('14-ai-progress-summary.jpg'),'url'=>''],
             ['id'=>'planner','icon'=>'bi-calendar-week','color'=>'orange','tag'=>$t('DIGITAL PLANNER','المخطط الرقمي','PLANIFICATEUR NUMÉRIQUE'),'title'=>$t('Plan the week without losing the month.','خطط للأسبوع دون أن تفقد رؤية الشهر.','Planifiez la semaine sans perdre le mois.'),'text'=>$t('Board, week, and calendar views stay in sync — every task carries its owner, priority, and deadline.','تظل عروض اللوحة والأسبوع والتقويم متزامنة، وتحمل كل مهمة مسؤولها وأولويتها وموعدها.','Les vues tableau, semaine et calendrier restent synchronisées.'),'bullets'=>$t("Drag-and-drop Kanban boards\nWeekly capacity at a glance\nClear ownership and priorities","لوحات كانبان بالسحب والإفلات\nالسعة الأسبوعية في لمحة\nمسؤوليات وأولويات واضحة","Kanban par glisser-déposer\nCapacité hebdomadaire en un coup d’œil\nResponsabilités et priorités claires"),'image'=>$asset('16-kanban-board.jpg'),'image_secondary'=>'','url'=>''],
             ['id'=>'notes','icon'=>'bi-journal-check','color'=>'teal','tag'=>$t('SMART NOTES','ملاحظات ذكية','NOTES INTELLIGENTES'),'title'=>$t('Ideas captured. Reminders that remind.','أفكار محفوظة. وتذكيرات في موعدها.','Idées capturées. Rappels efficaces.'),'text'=>$t('Capture thoughts, tag them by type, and set a timed reminder — at exactly the right moment.','سجّل أفكارك وصنّفها واضبط تذكيرًا في اللحظة المناسبة.','Capturez vos idées, classez-les et programmez un rappel.'),'bullets'=>$t("Timed reminders on any note\nColor-coded categories\nSearchable across everything","تذكير موقّت لأي ملاحظة\nتصنيفات ملوّنة\nبحث شامل في كل شيء","Rappels sur chaque note\nCatégories colorées\nRecherche globale"),'image'=>$asset('18-smart-notes-row-1.jpg'),'image_secondary'=>$asset('19-smart-notes-row-2.jpg'),'url'=>''],
             ['id'=>'workspace','icon'=>'bi-rocket-takeoff','color'=>'blue','tag'=>$t('WORKSPACE — UNIQUE','مساحة عمل — فريدة','ESPACE — UNIQUE'),'title'=>$t('Discuss the idea. Then make it real — in one click.','ناقش الفكرة. ثم حوّلها إلى واقع — بنقرة واحدة.','Discutez de l’idée. Réalisez-la en un clic.'),'text'=>$t('Invite members, chat, collect suggestions, and start tasks. Convert the whole workspace into a real project with all its data.','ادعُ الأعضاء وتبادلوا النقاش واجمعوا الاقتراحات وابدؤوا المهام، ثم حوّلوا المساحة إلى مشروع كامل.','Invitez les membres, discutez et convertissez tout en projet.'),'bullets'=>$t("Invite members and managers\nStart tasks inside the discussion\nOne click to a full project","دعوة الأعضاء والمديرين\nبدء المهام داخل النقاش\nنقرة واحدة لمشروع كامل","Inviter membres et managers\nCréer des tâches dans la discussion\nUn clic vers un projet complet"),'image'=>'workspace','image_secondary'=>'','url'=>''],
@@ -58,7 +58,7 @@ function beem360_defaults(): array {
         'section_order' => array_keys(beem360_sections()),
         'enabled' => array_fill_keys(array_keys(beem360_sections()), 1),
         'admin_email' => get_option('admin_email'),
-        'from_name' => get_bloginfo('name') ?: 'Beem 360',
+        'from_name' => get_bloginfo('name') ?: 'Beem View 360',
         'from_email' => get_option('admin_email'),
         'login_url' => 'https://beemview.com/login',
         'register_url' => 'https://beemview.com/register',
@@ -74,7 +74,7 @@ function beem360_defaults(): array {
         'copy' => [
             'hero_kicker' => ['en'=>'Overview','ar'=>'نظرة عامة','fr'=>'Aperçu'],
             'hero_title' => ['en'=>'Clarity for every decision.','ar'=>'وضوح في كل قرار.','fr'=>'De la clarté pour chaque décision.'],
-            'hero_text' => ['en'=>'Beem 360 connects your tasks, teams, and data in one intelligent workspace. See everything. Decide faster.','ar'=>'يربط Beem 360 مهامك وفرقك وبياناتك في مساحة عمل ذكية واحدة. شاهد كل شيء واتخذ القرار أسرع.','fr'=>'Beem 360 connecte vos tâches, vos équipes et vos données dans un espace intelligent unique. Voyez tout. Décidez plus vite.'],
+            'hero_text' => ['en'=>'Beem View 360 connects your tasks, teams, and data in one intelligent workspace. See everything. Decide faster.','ar'=>'يربط Beem View 360 مهامك وفرقك وبياناتك في مساحة عمل ذكية واحدة. شاهد كل شيء واتخذ القرار أسرع.','fr'=>'Beem View 360 connecte vos tâches, vos équipes et vos données dans un espace intelligent unique. Voyez tout. Décidez plus vite.'],
             'hero_primary' => ['en'=>'Book a Demo','ar'=>'احجز عرضًا توضيحيًا','fr'=>'Réserver une démo'],
             'hero_secondary' => ['en'=>'Contact us','ar'=>'تواصل معنا','fr'=>'Nous contacter'],
             'request_title' => ['en'=>'Request a demo','ar'=>'طلب عرض توضيحي','fr'=>'Demander une démo'],
@@ -87,7 +87,7 @@ function beem360_defaults(): array {
             'field_message' => ['en'=>'How can we help?','ar'=>'كيف يمكننا مساعدتك؟','fr'=>'Comment pouvons-nous vous aider ?'],
             'form_submit' => ['en'=>'Send request','ar'=>'إرسال الطلب','fr'=>'Envoyer'],
             'form_success' => ['en'=>'Thank you. Your request was received and we will contact you shortly.','ar'=>'شكرًا لك. تم استلام طلبك وسنتواصل معك قريبًا.','fr'=>'Merci. Votre demande a été reçue et nous vous contacterons bientôt.'],
-            'thankyou_subject' => ['en'=>'Thank you for contacting Beem 360','ar'=>'شكرًا لتواصلك مع Beem 360','fr'=>'Merci d’avoir contacté Beem 360'],
+            'thankyou_subject' => ['en'=>'Thank you for contacting Beem View 360','ar'=>'شكرًا لتواصلك مع Beem View 360','fr'=>'Merci d’avoir contacté Beem View 360'],
             'thankyou_title' => ['en'=>'Thank you — we received your request.','ar'=>'شكرًا لك — استلمنا طلبك.','fr'=>'Merci — nous avons reçu votre demande.'],
             'thankyou_text' => ['en'=>'Our team will review your message and contact you shortly.','ar'=>'سيراجع فريقنا رسالتك ويتواصل معك قريبًا.','fr'=>'Notre équipe examinera votre message et vous contactera rapidement.'],
             'workspace_idea' => ['en'=>'New Product Idea','ar'=>'فكرة منتج جديد','fr'=>'Nouvelle idée produit'],
@@ -102,7 +102,7 @@ function beem360_defaults(): array {
             'pillars_text' => ['en'=>'Everything leaders need to see, teams need to execute, and companies need to scale.','ar'=>'كل ما يحتاجه القادة للرؤية والفرق للتنفيذ والشركات للنمو.','fr'=>'Tout ce que les dirigeants doivent voir, les équipes exécuter et les entreprises développer.'],
             'problem_title' => ['en'=>'Work is scattered across too many tools.','ar'=>'العمل مشتت بين عدد كبير من الأدوات.','fr'=>'Le travail est dispersé dans trop d’outils.'],
             'problem_text' => ['en'=>'Important updates, files, and tasks live in different places — and nothing is truly connected.','ar'=>'التحديثات والملفات والمهام المهمة موجودة في أماكن مختلفة — ولا شيء مترابط فعليًا.','fr'=>'Les mises à jour, fichiers et tâches sont éparpillés — rien n’est vraiment connecté.'],
-            'solution_title' => ['en'=>'Beem 360 connects everything that matters.','ar'=>'Beem 360 يربط كل ما يهم.','fr'=>'Beem 360 connecte tout ce qui compte.'],
+            'solution_title' => ['en'=>'Beem View 360 connects everything that matters.','ar'=>'Beem View 360 يربط كل ما يهم.','fr'=>'Beem View 360 connecte tout ce qui compte.'],
             'solution_text' => ['en'=>'All your work, data, and teams in one intelligent command center.','ar'=>'كل أعمالك وبياناتك وفرقك في مركز قيادة ذكي واحد.','fr'=>'Tout votre travail, vos données et vos équipes dans un centre de commande intelligent.'],
             'features_title' => ['en'=>'Powerful features that drive results.','ar'=>'مزايا قوية تصنع النتائج.','fr'=>'Des fonctionnalités puissantes qui génèrent des résultats.'],
             'features_text' => ['en'=>'Real product screens, presented feature by feature.','ar'=>'شاشات فعلية من المنتج، معروضة ميزة بعد أخرى.','fr'=>'De vrais écrans produit, fonctionnalité par fonctionnalité.'],
@@ -112,11 +112,16 @@ function beem360_defaults(): array {
     ];
 }
 
+function beem360_brand_value(mixed $value): mixed {
+    if(is_array($value))return array_map('beem360_brand_value',$value);
+    return is_string($value)?str_replace(['BEEM 360','Beem 360'],['BEEM VIEW 360','Beem View 360'],$value):$value;
+}
+
 function beem360_options(): array {
     $saved=(array)get_option('beem360_options',[]);$options=array_replace_recursive(beem360_defaults(),$saved);
     if(isset($saved['section_order'])&&is_array($saved['section_order']))$options['section_order']=$saved['section_order'];
     if(isset($saved['items'])&&is_array($saved['items']))foreach($saved['items'] as $group=>$items)$options['items'][$group]=is_array($items)?array_values($items):[];
-    return $options;
+    return beem360_brand_value($options);
 }
 
 function beem360_lang(): string {

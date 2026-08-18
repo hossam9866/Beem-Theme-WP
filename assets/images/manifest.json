@@ -2,7 +2,7 @@
   {
     "index": 1,
     "name": "01-beem-360.png",
-    "alt": "Beem 360",
+    "alt": "Beem View 360",
     "bytes": 23480
   },
   {
@@ -26,7 +26,7 @@
   {
     "index": 5,
     "name": "05-beem-360.png",
-    "alt": "Beem 360",
+    "alt": "Beem View 360",
     "bytes": 23480
   },
   {
@@ -140,13 +140,13 @@
   {
     "index": 24,
     "name": "24-beem-360.png",
-    "alt": "Beem 360",
+    "alt": "Beem View 360",
     "bytes": 23480
   },
   {
     "index": 25,
     "name": "25-beem-360.png",
-    "alt": "Beem 360",
+    "alt": "Beem View 360",
     "bytes": 23480
   }
 ]
