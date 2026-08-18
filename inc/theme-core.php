@@ -156,6 +156,11 @@ function beem360_media(string $key): string {
     return esc_url((string) (beem360_options()['media'][$key] ?? ''));
 }
 
+function beem360_asset_version(string $relative_path): string {
+    $path=BEEM360_DIR.'/'.ltrim($relative_path,'/');
+    return file_exists($path)?(string)filemtime($path):BEEM360_VERSION;
+}
+
 function beem360_asset(string $file): string {
     return esc_url(BEEM360_URI . '/assets/images/' . ltrim($file, '/'));
 }
@@ -203,18 +208,17 @@ function beem360_assets(): void {
     wp_enqueue_style('beem360-font', 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Kufi+Arabic:wght@400;500;600;700;800&display=swap', [], null);
     wp_enqueue_style('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css', [], '5.3.8');
     wp_enqueue_style('bootstrap-icons', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css', [], '1.13.1');
-    wp_enqueue_style('intl-tel-input', 'https://cdn.jsdelivr.net/npm/intl-tel-input@27.0.10/build/css/intlTelInput.css', [], '27.0.10');
-    wp_enqueue_style('beem360', BEEM360_URI . '/assets/css/beem360.css', ['bootstrap','bootstrap-icons','intl-tel-input'], BEEM360_VERSION);
+    wp_enqueue_style('intl-tel-input', BEEM360_URI . '/assets/vendor/intl-tel-input/css/intlTelInput.min.css', [], beem360_asset_version('assets/vendor/intl-tel-input/css/intlTelInput.min.css'));
+    wp_enqueue_style('beem360', BEEM360_URI . '/assets/css/beem360.css', ['bootstrap','bootstrap-icons','intl-tel-input'], beem360_asset_version('assets/css/beem360.css'));
     wp_enqueue_script('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js', [], '5.3.8', true);
-    wp_enqueue_script('intl-tel-input', 'https://cdn.jsdelivr.net/npm/intl-tel-input@27.0.10/build/js/intlTelInput.min.js', [], '27.0.10', true);
-    wp_enqueue_script('beem360', BEEM360_URI . '/assets/js/beem360.js', ['bootstrap','intl-tel-input'], BEEM360_VERSION, true);
+    wp_enqueue_script('intl-tel-input', BEEM360_URI . '/assets/vendor/intl-tel-input/js/intlTelInputWithUtils.min.js', [], beem360_asset_version('assets/vendor/intl-tel-input/js/intlTelInputWithUtils.min.js'), true);
+    wp_enqueue_script('beem360', BEEM360_URI . '/assets/js/beem360.js', ['bootstrap','intl-tel-input'], beem360_asset_version('assets/js/beem360.js'), true);
     wp_localize_script('beem360', 'Beem360', [
         'ajaxUrl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('beem360_inquiry'),
         'sending' => beem360_lang() === 'ar' ? 'جارٍ الإرسال…' : (beem360_lang() === 'fr' ? 'Envoi…' : 'Sending…'),
         'invalidPhone' => beem360_x('Enter a valid phone number.','أدخل رقم هاتف صحيحًا.','Saisissez un numéro de téléphone valide.'),
         'phoneCountries' => ['sa','ae','kw','qa','bh','om','eg','jo','lb','iq','sy','ye','ps','ma','dz','tn','ly','sd','so','dj','mr','km'],
-        'phoneUtils' => 'https://cdn.jsdelivr.net/npm/intl-tel-input@27.0.10/build/js/utils.js',
     ]);
 }
 add_action('wp_enqueue_scripts', 'beem360_assets');

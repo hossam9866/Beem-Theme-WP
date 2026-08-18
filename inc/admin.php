@@ -12,9 +12,9 @@ add_action('admin_menu','beem360_admin_menu');
 function beem360_admin_assets(string $hook): void {
     if(strpos($hook,'beem360')===false && get_post_type()!=='beem_inquiry') return;
     wp_enqueue_media();
-    wp_enqueue_style('beem360-admin',BEEM360_URI.'/assets/css/beem360-admin.css',[],BEEM360_VERSION);
+    wp_enqueue_style('beem360-admin',BEEM360_URI.'/assets/css/beem360-admin.css',[],beem360_asset_version('assets/css/beem360-admin.css'));
     wp_enqueue_script('jquery-ui-sortable');
-    wp_enqueue_script('beem360-admin',BEEM360_URI.'/assets/js/beem360-admin.js',['jquery','jquery-ui-sortable'],BEEM360_VERSION,true);
+    wp_enqueue_script('beem360-admin',BEEM360_URI.'/assets/js/beem360-admin.js',['jquery','jquery-ui-sortable'],beem360_asset_version('assets/js/beem360-admin.js'),true);
 }
 add_action('admin_enqueue_scripts','beem360_admin_assets');
 
@@ -28,13 +28,13 @@ function beem360_repeater_schemas(): array {
       'hub_left'=>['title'=>'Connected hub — left','description'=>'Items on the left side of the system graphic.','fields'=>['label'=>['label'=>'Label','type'=>'i18n_text','langs'=>$langs],'icon'=>['label'=>'Bootstrap icon class','type'=>'text']]],
       'hub_right'=>['title'=>'Connected hub — right','description'=>'Items on the right side of the system graphic.','fields'=>['label'=>['label'=>'Label','type'=>'i18n_text','langs'=>$langs],'icon'=>['label'=>'Bootstrap icon class','type'=>'text']]],
       'features'=>['title'=>'Feature breakdowns','description'=>'Every feature row is editable and sortable. Use “workspace” as the primary image value to keep the interactive mockup.','fields'=>['id'=>['label'=>'Section ID','type'=>'text'],'tag'=>['label'=>'Tag','type'=>'i18n_text','langs'=>$langs],'title'=>['label'=>'Title','type'=>'i18n_text','langs'=>$langs],'text'=>['label'=>'Description','type'=>'i18n_textarea','langs'=>$langs],'bullets'=>['label'=>'Bullet points — one per line','type'=>'i18n_textarea','langs'=>$langs],'icon'=>['label'=>'Bootstrap icon class','type'=>'text'],'color'=>['label'=>'Color','type'=>'select','options'=>['blue'=>'Blue','orange'=>'Orange','teal'=>'Teal']],'image'=>['label'=>'Primary image','type'=>'image'],'image_secondary'=>['label'=>'Secondary image','type'=>'image'],'url'=>['label'=>'Optional learn-more URL','type'=>'url_text']]],
-      'footer_links'=>['title'=>'Footer links','description'=>'Links shown beside the contact button.','fields'=>['label'=>['label'=>'Label','type'=>'i18n_text','langs'=>$langs],'url'=>['label'=>'URL','type'=>'url_text']]],
+      'footer_links'=>['title'=>'Footer links','description'=>'Choose a different WordPress page for each language. The URL is retained as a fallback when no page is selected.','fields'=>['label'=>['label'=>'Label','type'=>'i18n_text','langs'=>$langs],'page'=>['label'=>'Page for each language','type'=>'i18n_page','langs'=>$langs],'url'=>['label'=>'Fallback URL','type'=>'url_text']]],
     ];
 }
 
 function beem360_sanitize_repeater(array $items,array $fields): array {
     $clean=[];
-    foreach(array_values($items) as $item){if(!is_array($item))continue;$row=[];foreach($fields as $key=>$field){$type=$field['type'];$value=$item[$key]??'';if(str_starts_with($type,'i18n_')){foreach(['en','ar','fr'] as $lang){$raw=wp_unslash((string)($value[$lang]??''));$row[$key][$lang]=$type==='i18n_textarea'?sanitize_textarea_field($raw):sanitize_text_field($raw);}}elseif($type==='image'){$raw=trim(wp_unslash((string)$value));$row[$key]=$raw==='workspace'?'workspace':esc_url_raw($raw);}elseif($type==='url_text'){$raw=trim(wp_unslash((string)$value));$row[$key]=str_starts_with($raw,'#')?sanitize_text_field($raw):esc_url_raw($raw);}else{$row[$key]=sanitize_text_field(wp_unslash((string)$value));}}$clean[]=$row;}
+    foreach(array_values($items) as $item){if(!is_array($item))continue;$row=[];foreach($fields as $key=>$field){$type=$field['type'];$value=$item[$key]??'';if(str_starts_with($type,'i18n_')){foreach(['en','ar','fr'] as $lang){$raw=wp_unslash((string)($value[$lang]??''));$row[$key][$lang]=$type==='i18n_page'?absint($raw):($type==='i18n_textarea'?sanitize_textarea_field($raw):sanitize_text_field($raw));}}elseif($type==='image'){$raw=trim(wp_unslash((string)$value));$row[$key]=$raw==='workspace'?'workspace':esc_url_raw($raw);}elseif($type==='url_text'){$raw=trim(wp_unslash((string)$value));$row[$key]=str_starts_with($raw,'#')?sanitize_text_field($raw):esc_url_raw($raw);}else{$row[$key]=sanitize_text_field(wp_unslash((string)$value));}}$clean[]=$row;}
     return $clean;
 }
 
@@ -56,11 +56,19 @@ add_action('admin_init','beem360_register_settings');
 
 function beem360_admin_field(string $group,string $index,string $key,array $field,mixed $value): void {
     $base='beem360_options[items]['.$group.']['.$index.']['.$key.']';$type=$field['type'];
-    if(str_starts_with($type,'i18n_')){echo '<div class="beem-lang-grid">';foreach($field['langs'] as $lang=>$label){$v=is_array($value)?($value[$lang]??''):'';echo '<label><span>'.esc_html($label).'</span>';if($type==='i18n_textarea')echo '<textarea rows="3" name="'.esc_attr($base.'['.$lang.']').'" dir="'.($lang==='ar'?'rtl':'ltr').'">'.esc_textarea($v).'</textarea>';else echo '<input type="text" name="'.esc_attr($base.'['.$lang.']').'" value="'.esc_attr($v).'" dir="'.($lang==='ar'?'rtl':'ltr').'">';echo '</label>';}echo '</div>';return;}
+    if(str_starts_with($type,'i18n_')){echo '<div class="beem-lang-grid">';foreach($field['langs'] as $lang=>$label){$v=is_array($value)?($value[$lang]??''):'';echo '<label><span>'.esc_html($label).'</span>';if($type==='i18n_textarea')echo '<textarea rows="3" name="'.esc_attr($base.'['.$lang.']').'" dir="'.($lang==='ar'?'rtl':'ltr').'">'.esc_textarea($v).'</textarea>';elseif($type==='i18n_page'){echo '<select name="'.esc_attr($base.'['.$lang.']').'">';echo '<option value="">— Select page —</option>';foreach(beem360_admin_language_pages($lang,absint($v)) as $page)echo '<option value="'.esc_attr((string)$page->ID).'" '.selected(absint($v),$page->ID,false).'>'.esc_html($page->post_title ?: ('Page #'.$page->ID)).'</option>';echo '</select>';}else echo '<input type="text" name="'.esc_attr($base.'['.$lang.']').'" value="'.esc_attr($v).'" dir="'.($lang==='ar'?'rtl':'ltr').'">';echo '</label>';}echo '</div>';return;}
     echo '<label class="beem-field"><span class="screen-reader-text">'.esc_html($field['label']).'</span>';
     if($type==='select'){echo '<select name="'.esc_attr($base).'">';foreach($field['options'] as $option=>$label)echo '<option value="'.esc_attr($option).'" '.selected($value,$option,false).'>'.esc_html($label).'</option>';echo '</select>';}
     elseif($type==='image'){echo '<div class="beem-media-field"><input type="text" name="'.esc_attr($base).'" value="'.esc_attr((string)$value).'" placeholder="Image URL"><button type="button" class="button beem-choose-media">Choose image</button><div class="beem-media-preview">'.(($value&&$value!=='workspace')?'<img src="'.esc_url((string)$value).'" alt="">':'').'</div></div>';}
     else echo '<input type="text" name="'.esc_attr($base).'" value="'.esc_attr((string)$value).'">';echo '</label>';
+}
+
+function beem360_admin_language_pages(string $lang,int $selected=0): array {
+    $args=['post_type'=>'page','post_status'=>'publish','posts_per_page'=>-1,'orderby'=>'title','order'=>'ASC','suppress_filters'=>false];
+    if(function_exists('pll_get_post_language'))$args['lang']=$lang;
+    $pages=get_posts($args);
+    if($selected&&!array_filter($pages,static fn($page)=>$page->ID===$selected)){$page=get_post($selected);if($page&&$page->post_type==='page')$pages[]=$page;}
+    return $pages;
 }
 
 function beem360_admin_repeater(string $group,array $schema,array $items): void { ?>

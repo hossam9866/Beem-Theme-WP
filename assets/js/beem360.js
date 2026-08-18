@@ -8,7 +8,10 @@ document.querySelectorAll('.beem-nav-links a').forEach(link=>link.addEventListen
 document.querySelectorAll('.beem-inquiry-form').forEach(form=>{
   const nonce=form.querySelector('[name="nonce"]');if(nonce)nonce.value=window.Beem360?.nonce||'';
   const phone=form.querySelector('.beem-phone-input');let phonePlugin=null;
-  if(phone&&window.intlTelInput){phonePlugin=window.intlTelInput(phone,{initialCountry:'sa',onlyCountries:window.Beem360?.phoneCountries||['sa'],countrySearch:true,separateDialCode:true,strictMode:true,loadUtils:()=>import(window.Beem360.phoneUtils)});}
+  if(phone&&window.intlTelInput){
+    try{phonePlugin=window.intlTelInput(phone,{initialCountry:'sa',onlyCountries:window.Beem360?.phoneCountries||['sa'],countrySearch:true,separateDialCode:true,strictMode:true});}
+    catch(error){console.error('Beem360 phone selector failed to initialise.',error);}
+  }
   form.addEventListener('submit',async event=>{
     event.preventDefault();const button=form.querySelector('[type="submit"]');const status=form.querySelector('.beem-form-status');const original=button.innerHTML;status.className='beem-form-status';status.textContent='';
     try{
