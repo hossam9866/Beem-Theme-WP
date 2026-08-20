@@ -40,6 +40,7 @@ function beem360_sanitize_repeater(array $items,array $fields): array {
 
 function beem360_sanitize_options(array $input): array {
     $defaults=beem360_defaults(); $output=beem360_options();
+    $restore_default_content=!empty($input['restore_default_content']);
     $order=array_filter(array_map('sanitize_key',explode(',',(string)($input['section_order']??''))),fn($v)=>isset(beem360_sections()[$v]));
     $output['section_order']=array_values(array_unique(array_merge($order,array_diff(array_keys(beem360_sections()),$order))));
     $output['enabled']=[]; foreach(beem360_sections() as $key=>$label){$output['enabled'][$key]=empty($input['enabled'][$key])?0:1;}
@@ -47,8 +48,14 @@ function beem360_sanitize_options(array $input): array {
     foreach(['from_name'] as $key){$output[$key]=sanitize_text_field($input[$key]??'');}
     foreach(['login_url','register_url','privacy_url','terms_url'] as $key){if(array_key_exists($key,$input))$output[$key]=esc_url_raw($input[$key]);}
     foreach(['logo','hero_primary','hero_secondary','cta_logo'] as $key){$output['media'][$key]=esc_url_raw($input['media'][$key]??($output['media'][$key]??''));}
-    foreach(beem360_repeater_schemas() as $group=>$schema){if(!empty($input['items_present'][$group])){$output['items'][$group]=beem360_sanitize_repeater((array)($input['items'][$group]??[]),$schema['fields']);}}
-    foreach($defaults['copy'] as $key=>$langs){foreach(['en','ar','fr'] as $lang){$output['copy'][$key][$lang]=sanitize_textarea_field(wp_unslash($input['copy'][$key][$lang]??$langs[$lang]));}}
+    if($restore_default_content){
+      $output['items']=$defaults['items'];
+      $output['copy']=$defaults['copy'];
+      add_settings_error('beem360_options','beem360_default_content_restored','Default homepage content restored for English, Arabic, and French.','updated');
+    }else{
+      foreach(beem360_repeater_schemas() as $group=>$schema){if(!empty($input['items_present'][$group])){$output['items'][$group]=beem360_sanitize_repeater((array)($input['items'][$group]??[]),$schema['fields']);}}
+      foreach($defaults['copy'] as $key=>$langs){foreach(['en','ar','fr'] as $lang){$output['copy'][$key][$lang]=sanitize_textarea_field(wp_unslash($input['copy'][$key][$lang]??$langs[$lang]));}}
+    }
     return $output;
 }
 function beem360_register_settings(): void { register_setting('beem360_settings','beem360_options',['sanitize_callback'=>'beem360_sanitize_options']); }
@@ -85,7 +92,7 @@ function beem360_settings_page(): void {
       </div><div data-admin-panel="items" hidden><div class="beem-admin-card beem-repeaters-card"><h2>Repeatable content</h2><p>Drag items to reorder. Open a row to edit languages, images, icons, and links.</p><?php foreach(beem360_repeater_schemas() as $group=>$schema)beem360_admin_repeater($group,$schema,(array)($o['items'][$group]??[])); ?></div></div><div data-admin-panel="contact" hidden>
       <div class="beem-admin-card"><h2>Global images</h2><p>The initial images come from the supplied design.</p><div class="beem-admin-grid"><?php foreach(['logo'=>'Header & footer logo','hero_primary'=>'Hero primary screenshot','hero_secondary'=>'Hero secondary screenshot','cta_logo'=>'CTA logo'] as $key=>$label){?><label><span><?php echo esc_html($label); ?></span><div class="beem-media-field"><input name="beem360_options[media][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($o['media'][$key]??''); ?>"><button type="button" class="button beem-choose-media">Choose image</button><div class="beem-media-preview"><img src="<?php echo esc_url($o['media'][$key]??''); ?>" alt=""></div></div></label><?php } ?></div></div>
       <div class="beem-admin-card"><h2>Account links & email delivery</h2><p>Footer links are managed as repeatable items in the previous tab.</p><div class="beem-admin-grid"><?php foreach(['admin_email'=>'Notification email','from_email'=>'Reply-from email','from_name'=>'Reply-from name','login_url'=>'Login URL','register_url'=>'Register URL'] as $key=>$label){?><label><span><?php echo esc_html($label); ?></span><input class="regular-text" name="beem360_options[<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($o[$key]); ?>"></label><?php } ?></div></div></div>
-      <div class="beem-sticky-save"><?php submit_button('Save all theme settings','primary','submit',false); ?></div></form></div><?php
+      <div class="beem-sticky-save"><button type="submit" class="button button-secondary beem-restore-defaults" name="beem360_options[restore_default_content]" value="1" formnovalidate>Restore default content</button><?php submit_button('Save all theme settings','primary','submit',false); ?></div></form></div><?php
 }
 
 function beem360_mail_page(): void {
