@@ -368,14 +368,18 @@ function beem360_legal_document(string $type, string $lang = ''): array {
 }
 
 function beem360_legal_url(string $type, string $lang = ''): string {
-    $slug=$type==='terms'?'terms-and-conditions':'privacy-policy';
+    $type=$type==='terms'?'terms':'privacy';
+    $lang=$lang!==''?$lang:(function_exists('pll_current_language')?(string)pll_current_language('slug'):beem360_lang());
+    if(function_exists('beem360_legal_content_page_id')){
+        $page_id=beem360_legal_content_page_id($type,$lang);
+        if($page_id){$page_url=(string)get_permalink($page_id);if($page_url!=='')return $page_url;}
+    }
     $home=beem360_home_url();
     if($lang!==''&&function_exists('pll_home_url')){
         $localized_home=pll_home_url($lang);
         if(is_string($localized_home)&&$localized_home!=='')$home=trailingslashit($localized_home);
     }
-    if((string)get_option('permalink_structure')==='')return add_query_arg('beem_legal',$type,$home);
-    return trailingslashit($home).$slug.'/';
+    return add_query_arg('beem_legal',$type,$home);
 }
 
 function beem360_legal_content_page_id(string $type, string $lang = ''): int {
@@ -435,10 +439,8 @@ function beem360_footer_link_url(array $item): string {
 }
 
 function beem360_legal_rewrite_rules(): void {
-    add_rewrite_rule('^(en|ar|fr)/privacy-policy/?$','index.php?lang=$matches[1]&beem_legal=privacy','top');
-    add_rewrite_rule('^(en|ar|fr)/terms-and-conditions/?$','index.php?lang=$matches[1]&beem_legal=terms','top');
-    add_rewrite_rule('^privacy-policy/?$','index.php?beem_legal=privacy','top');
-    add_rewrite_rule('^terms-and-conditions/?$','index.php?beem_legal=terms','top');
+    // Legal content pages use normal WordPress/Polylang page rewrites. Keeping
+    // custom rules here would shadow real pages with the same slugs.
 }
 add_action('init','beem360_legal_rewrite_rules');
 

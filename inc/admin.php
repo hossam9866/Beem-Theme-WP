@@ -24,7 +24,7 @@ function beem360_maybe_flush_legal_routes(): void {
     beem360_flush_legal_rewrite_rules();
     update_option('beem360_legal_routes_version',BEEM360_VERSION,false);
 }
-add_action('admin_init','beem360_maybe_flush_legal_routes');
+add_action('wp_loaded','beem360_maybe_flush_legal_routes');
 
 function beem360_copy_editor_keys(): array {
     return ['hero_text','request_intro','contact_intro','form_success','thankyou_text','pillars_text','problem_text','solution_text','features_text','cta_text'];
