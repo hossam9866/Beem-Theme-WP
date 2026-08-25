@@ -94,3 +94,49 @@ function beem360_cta_shortcode(): string {
     <section class="beem-section beem-cta" id="cta"><div class="container text-center"><div class="beem-reveal"><div class="beem-num"><b>04</b> <?php echo esc_html(beem360_x('GET STARTED','ابدأ الآن','PASSEZ À L’ACTION')); ?></div><h2><?php echo beem360_text_breaks(beem360_t('cta_title')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></h2></div><div class="beem-cta-pill beem-spot beem-reveal-scale"><img src="<?php echo beem360_media('cta_logo'); ?>" alt=""><strong><?php echo beem360_text_breaks(beem360_t('cta_text')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></strong><button class="beem-btn" data-beem-modal="request"><?php echo esc_html(beem360_t('hero_primary')); ?> <i class="bi bi-arrow-right"></i></button></div></div></section><?php });
 }
 add_shortcode('beem_cta', 'beem360_cta_shortcode');
+
+/**
+ * Render a saved legal document inside a regular WordPress page.
+ *
+ * Examples:
+ * [beem_privacy_policy]
+ * [beem_terms_conditions]
+ * [beem_legal type="privacy" lang="fr"]
+ */
+function beem360_legal_content_shortcode(array|string $atts = [], ?string $content = null, string $tag = ''): string {
+    $atts=shortcode_atts(['type'=>'privacy','lang'=>''],is_array($atts)?$atts:[],$tag?:'beem_legal');
+    $type=sanitize_key((string)$atts['type']);
+    if($tag==='beem_privacy_policy')$type='privacy';
+    if(in_array($tag,['beem_terms_conditions','beem_terms_and_conditions'],true))$type='terms';
+    if(!in_array($type,['privacy','terms'],true))$type='privacy';
+
+    $requested_lang=substr(sanitize_key((string)$atts['lang']),0,2);
+    $lang=in_array($requested_lang,['en','ar','fr'],true)?$requested_lang:beem360_lang();
+    $document=beem360_legal_document($type,$lang);
+    $title=(string)($document['title']??'');
+    $intro=(string)($document['intro']??'');
+    $updated=(string)($document['updated']??'');
+    $body=(string)($document['content']??'');
+    $labels=[
+      'privacy'=>['en'=>'PRIVACY','ar'=>'الخصوصية','fr'=>'CONFIDENTIALITÉ'],
+      'terms'=>['en'=>'TERMS','ar'=>'الشروط','fr'=>'CONDITIONS'],
+    ];
+
+    return beem360_capture(function () use ($type,$lang,$document,$title,$intro,$updated,$body,$labels) { ?>
+      <section class="beem-legal-embed<?php echo $lang==='ar'?' beem-rtl':''; ?>" lang="<?php echo esc_attr($lang); ?>" dir="<?php echo $lang==='ar'?'rtl':'ltr'; ?>">
+        <header class="beem-legal-hero">
+          <span class="beem-legal-kicker"><?php echo esc_html($labels[$type][$lang]); ?></span>
+          <?php if($title!==''){?><h1><?php echo beem360_text_breaks($title); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></h1><?php } ?>
+          <?php if($intro!==''){?><div class="beem-legal-intro"><?php echo beem360_format_content($intro); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div><?php } ?>
+          <?php if($updated!==''){?><p class="beem-legal-updated"><i class="bi bi-clock-history"></i> <?php echo esc_html($updated); ?></p><?php } ?>
+        </header>
+        <article class="beem-legal-content beem-spot">
+          <?php echo beem360_format_content($body); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        </article>
+      </section>
+    <?php });
+}
+add_shortcode('beem_legal','beem360_legal_content_shortcode');
+add_shortcode('beem_privacy_policy','beem360_legal_content_shortcode');
+add_shortcode('beem_terms_conditions','beem360_legal_content_shortcode');
+add_shortcode('beem_terms_and_conditions','beem360_legal_content_shortcode');

@@ -352,10 +352,19 @@ function beem360_items(string $group): array {
     return is_array($items) ? beem360_localized($items) : [];
 }
 
-function beem360_legal_document(string $type): array {
+function beem360_localized_for_language(mixed $value, string $lang): mixed {
+    if (!is_array($value)) { return $value; }
+    if (isset($value['en']) || isset($value['ar']) || isset($value['fr'])) {
+        return $value[$lang] ?? $value['en'] ?? reset($value);
+    }
+    return array_map(static fn(mixed $item): mixed => beem360_localized_for_language($item, $lang), $value);
+}
+
+function beem360_legal_document(string $type, string $lang = ''): array {
     if(!in_array($type,['privacy','terms'],true))$type='privacy';
     $document=beem360_options()['legal'][$type]??[];
-    return is_array($document)?beem360_localized($document):[];
+    $lang=in_array($lang,['en','ar','fr'],true)?$lang:beem360_lang();
+    return is_array($document)?beem360_localized_for_language($document,$lang):[];
 }
 
 function beem360_legal_url(string $type): string {
