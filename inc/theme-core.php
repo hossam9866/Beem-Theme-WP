@@ -380,7 +380,15 @@ function beem360_legal_url(string $type, string $lang = ''): string {
 
 function beem360_footer_link_url(array $item): string {
     $page_id=absint($item['page']??0);
-    if($page_id)return (string)get_permalink($page_id);
+    if($page_id){
+        $lang=function_exists('pll_current_language')?(string)pll_current_language('slug'):beem360_lang();
+        if(function_exists('pll_get_post')){
+            $translated_id=absint(pll_get_post($page_id,$lang));
+            if($translated_id)$page_id=$translated_id;
+        }
+        $page_url=(string)get_permalink($page_id);
+        if($page_url!=='')return $page_url;
+    }
     $url=(string)($item['url']??'#');
     if($url==='@privacy')return beem360_legal_url('privacy');
     if($url==='@terms')return beem360_legal_url('terms');
@@ -524,22 +532,20 @@ function beem360_language_links(): string {
             $language['current_lang']=$slug===$current;
         }
         unset($language);
-    }elseif(is_singular()&&$queried_id>0&&function_exists('pll_get_post_translations')){
-        $translations=pll_get_post_translations($queried_id);
+    }elseif(is_singular()&&$queried_id>0&&function_exists('pll_get_post')){
         foreach($languages as &$language){
             $slug=(string)($language['slug']??'');
-            $translation_id=absint(is_array($translations)?($translations[$slug]??0):0);
+            $translation_id=$slug!==''?absint(pll_get_post($queried_id,$slug)):0;
             $url=$translation_id?(string)get_permalink($translation_id):'';
             $language['url']=$url;
             $language['no_translation']=$url==='';
             $language['current_lang']=$slug===$current;
         }
         unset($language);
-    }elseif((is_category()||is_tag()||is_tax())&&$queried_id>0&&function_exists('pll_get_term_translations')){
-        $translations=pll_get_term_translations($queried_id);
+    }elseif((is_category()||is_tag()||is_tax())&&$queried_id>0&&function_exists('pll_get_term')){
         foreach($languages as &$language){
             $slug=(string)($language['slug']??'');
-            $translation_id=absint(is_array($translations)?($translations[$slug]??0):0);
+            $translation_id=$slug!==''?absint(pll_get_term($queried_id,$slug)):0;
             $url=$translation_id?get_term_link($translation_id):'';
             $language['url']=is_wp_error($url)?'':(string)$url;
             $language['no_translation']=$language['url']==='';
