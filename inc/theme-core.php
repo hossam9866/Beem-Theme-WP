@@ -555,23 +555,41 @@ add_filter('body_class', 'beem360_body_classes');
 function beem360_language_links(): string {
     if (!function_exists('pll_the_languages')) { return ''; }
     $queried_id=(int)get_queried_object_id();
-    $args=['raw'=>1,'hide_if_empty'=>0,'hide_if_no_translation'=>1];
+    $args=['raw'=>1,'hide_if_empty'=>0,'hide_if_no_translation'=>0];
     if(is_singular()&&$queried_id>0)$args['post_id']=$queried_id;
     $languages=pll_the_languages($args);
-    if (!is_array($languages)) { return ''; }
+    if(!is_array($languages))$languages=[];
 
     $current=function_exists('pll_current_language')?(string)pll_current_language('slug'):beem360_lang();
     $legal_type=(string)get_query_var('beem_legal');
-    if(in_array($legal_type,['privacy','terms'],true)){
-        foreach($languages as &$language){
-            $slug=(string)($language['slug']??'');
-            if($slug==='')continue;
+
+    if(function_exists('pll_languages_list')){
+        $slugs=pll_languages_list(['hide_empty'=>0,'fields'=>'slug']);
+        $names=pll_languages_list(['hide_empty'=>0,'fields'=>'name']);
+        $names=is_array($names)?array_values($names):[];
+        if(is_array($slugs))foreach(array_values($slugs) as $index=>$slug){
+            $slug=(string)$slug;
+            if($slug===''||array_filter($languages,static fn($language): bool=>(string)($language['slug']??'')===$slug))continue;
+            $languages[]=['slug'=>$slug,'name'=>(string)($names[$index]??strtoupper($slug)),'url'=>'','current_lang'=>$slug===$current,'no_translation'=>true];
+        }
+    }
+
+    foreach($languages as &$language){
+        $slug=(string)($language['slug']??'');
+        if($slug==='')continue;
+        $language['current_lang']=$slug===$current;
+        if(in_array($legal_type,['privacy','terms'],true)){
             $language['url']=beem360_legal_url($legal_type,$slug);
             $language['no_translation']=false;
-            $language['current_lang']=$slug===$current;
+            continue;
         }
-        unset($language);
+        if(empty($language['url'])||!empty($language['no_translation'])){
+            $home=function_exists('pll_home_url')?pll_home_url($slug):'';
+            $language['url']=is_string($home)?$home:'';
+            $language['no_translation']=$language['url']==='';
+        }
     }
+    unset($language);
 
     $languages=array_filter($languages,static fn($language): bool=>!empty($language['url'])&&empty($language['no_translation']));
     $alternatives = array_filter($languages, static fn($language) => empty($language['current_lang']));
