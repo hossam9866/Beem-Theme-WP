@@ -12,11 +12,23 @@ add_action('admin_menu','beem360_admin_menu');
 function beem360_admin_assets(string $hook): void {
     if(strpos($hook,'beem360')===false && get_post_type()!=='beem_inquiry') return;
     wp_enqueue_media();
+    wp_enqueue_editor();
     wp_enqueue_style('beem360-admin',BEEM360_URI.'/assets/css/beem360-admin.css',[],beem360_asset_version('assets/css/beem360-admin.css'));
     wp_enqueue_script('jquery-ui-sortable');
     wp_enqueue_script('beem360-admin',BEEM360_URI.'/assets/js/beem360-admin.js',['jquery','jquery-ui-sortable'],beem360_asset_version('assets/js/beem360-admin.js'),true);
 }
 add_action('admin_enqueue_scripts','beem360_admin_assets');
+
+function beem360_maybe_flush_legal_routes(): void {
+    if(get_option('beem360_legal_routes_version')===BEEM360_VERSION)return;
+    beem360_flush_legal_rewrite_rules();
+    update_option('beem360_legal_routes_version',BEEM360_VERSION,false);
+}
+add_action('admin_init','beem360_maybe_flush_legal_routes');
+
+function beem360_copy_editor_keys(): array {
+    return ['hero_text','request_intro','contact_intro','form_success','thankyou_text','pillars_text','problem_text','solution_text','features_text','cta_text'];
+}
 
 function beem360_repeater_schemas(): array {
     $langs=['en'=>'English','ar'=>'العربية','fr'=>'Français'];
@@ -34,7 +46,7 @@ function beem360_repeater_schemas(): array {
 
 function beem360_sanitize_repeater(array $items,array $fields): array {
     $clean=[];
-    foreach(array_values($items) as $item){if(!is_array($item))continue;$row=[];foreach($fields as $key=>$field){$type=$field['type'];$value=$item[$key]??'';if(str_starts_with($type,'i18n_')){foreach(['en','ar','fr'] as $lang){$raw=wp_unslash((string)($value[$lang]??''));$row[$key][$lang]=$type==='i18n_page'?absint($raw):($type==='i18n_textarea'?sanitize_textarea_field($raw):sanitize_text_field($raw));}}elseif($type==='image'){$raw=trim(wp_unslash((string)$value));$row[$key]=$raw==='workspace'?'workspace':esc_url_raw($raw);}elseif($type==='url_text'){$raw=trim(wp_unslash((string)$value));$row[$key]=str_starts_with($raw,'#')?sanitize_text_field($raw):esc_url_raw($raw);}else{$row[$key]=sanitize_text_field(wp_unslash((string)$value));}}$clean[]=$row;}
+    foreach(array_values($items) as $item){if(!is_array($item))continue;$row=[];foreach($fields as $key=>$field){$type=$field['type'];$value=$item[$key]??'';if(str_starts_with($type,'i18n_')){foreach(['en','ar','fr'] as $lang){$raw=wp_unslash((string)($value[$lang]??''));$row[$key][$lang]=$type==='i18n_page'?absint($raw):($type==='i18n_textarea'?sanitize_textarea_field($raw):sanitize_text_field($raw));}}elseif($type==='image'){$raw=trim(wp_unslash((string)$value));$row[$key]=$raw==='workspace'?'workspace':esc_url_raw($raw);}elseif($type==='url_text'){$raw=trim(wp_unslash((string)$value));$row[$key]=in_array($raw,['@privacy','@terms'],true)?$raw:(str_starts_with($raw,'#')?sanitize_text_field($raw):esc_url_raw($raw));}else{$row[$key]=sanitize_text_field(wp_unslash((string)$value));}}$clean[]=$row;}
     return $clean;
 }
 
@@ -51,10 +63,12 @@ function beem360_sanitize_options(array $input): array {
     if($restore_default_content){
       $output['items']=$defaults['items'];
       $output['copy']=$defaults['copy'];
-      add_settings_error('beem360_options','beem360_default_content_restored','Default homepage content restored for English, Arabic, and French.','updated');
+      $output['legal']=$defaults['legal'];
+      add_settings_error('beem360_options','beem360_default_content_restored','Default homepage and legal content restored for English, Arabic, and French.','updated');
     }else{
       foreach(beem360_repeater_schemas() as $group=>$schema){if(!empty($input['items_present'][$group])){$output['items'][$group]=beem360_sanitize_repeater((array)($input['items'][$group]??[]),$schema['fields']);}}
-      foreach($defaults['copy'] as $key=>$langs){foreach(['en','ar','fr'] as $lang){$output['copy'][$key][$lang]=sanitize_textarea_field(wp_unslash($input['copy'][$key][$lang]??$langs[$lang]));}}
+      foreach($defaults['copy'] as $key=>$langs){foreach(['en','ar','fr'] as $lang){$raw=wp_unslash($input['copy'][$key][$lang]??$langs[$lang]);$output['copy'][$key][$lang]=in_array($key,beem360_copy_editor_keys(),true)?wp_kses_post($raw):sanitize_textarea_field($raw);}}
+      foreach($defaults['legal'] as $type=>$document){foreach(['title','intro','updated','content'] as $field){foreach(['en','ar','fr'] as $lang){$raw=wp_unslash($input['legal'][$type][$field][$lang]??$document[$field][$lang]);$output['legal'][$type][$field][$lang]=$field==='content'?wp_kses_post($raw):sanitize_textarea_field($raw);}}}
     }
     return $output;
 }
@@ -78,6 +92,16 @@ function beem360_admin_language_pages(string $lang,int $selected=0): array {
     return $pages;
 }
 
+function beem360_admin_copy_editor(string $key,string $lang,string $value): void {
+    $editor_id='beem360_copy_'.$key.'_'.$lang;
+    wp_editor($value,$editor_id,['textarea_name'=>'beem360_options[copy]['.$key.']['.$lang.']','textarea_rows'=>5,'media_buttons'=>false,'tinymce'=>false,'quicktags'=>['buttons'=>'strong,em,link,ul,ol,li,close']]);
+}
+
+function beem360_admin_legal_editor(string $type,string $lang,string $value): void {
+    $editor_id='beem360_legal_'.$type.'_'.$lang;
+    wp_editor($value,$editor_id,['textarea_name'=>'beem360_options[legal]['.$type.'][content]['.$lang.']','textarea_rows'=>22,'media_buttons'=>false,'teeny'=>false]);
+}
+
 function beem360_admin_repeater(string $group,array $schema,array $items): void { ?>
  <section class="beem-repeater" data-group="<?php echo esc_attr($group); ?>"><input type="hidden" name="beem360_options[items_present][<?php echo esc_attr($group); ?>]" value="1"><div class="beem-repeater-heading"><div><h3><?php echo esc_html($schema['title']); ?></h3><p><?php echo esc_html($schema['description']); ?></p></div><button type="button" class="button button-primary beem-add-item"><span class="dashicons dashicons-plus-alt2"></span> Add item</button></div><div class="beem-repeater-list">
  <?php foreach($items as $index=>$item){$title=$item['title']??$item['label']??'';?><article class="beem-repeater-item"><header><span class="dashicons dashicons-menu beem-drag"></span><strong class="beem-item-title"><?php echo esc_html(is_array($title)?($title['en']??'Item'):$title); ?></strong><button type="button" class="button-link-delete beem-remove-item">Remove</button><button type="button" class="button-link beem-toggle-item"><span class="dashicons dashicons-arrow-down-alt2"></span></button></header><div class="beem-repeater-fields"><?php foreach($schema['fields'] as $key=>$field){?><div class="beem-control-field"><b><?php echo esc_html($field['label']); ?></b><?php beem360_admin_field($group,(string)$index,$key,$field,$item[$key]??''); ?></div><?php } ?></div></article><?php } ?>
@@ -85,14 +109,31 @@ function beem360_admin_repeater(string $group,array $schema,array $items): void 
 <?php }
 
 function beem360_settings_page(): void {
-    if(!current_user_can('manage_options')) return; $o=beem360_options(); ?>
-    <div class="wrap beem-admin"><div class="beem-admin-hero"><div><span>BEEM VIEW 360</span><h1>Theme Control Center</h1><p>Manage every section, image, link, language, and repeatable item from one place.</p></div><div class="beem-save-hint"><span class="dashicons dashicons-saved"></span> Save after editing</div></div><form method="post" action="options.php"><?php settings_fields('beem360_settings'); ?><nav class="beem-admin-tabs"><button type="button" class="is-active" data-admin-tab="layout">Layout & copy</button><button type="button" data-admin-tab="items">Repeatable items</button><button type="button" data-admin-tab="contact">Images, links & email</button></nav><div data-admin-panel="layout">
-      <div class="beem-admin-card"><h2>Section order & visibility</h2><input type="hidden" id="beem-section-order" name="beem360_options[section_order]" value="<?php echo esc_attr(implode(',',$o['section_order'])); ?>"><ul id="beem-sortable"><?php foreach($o['section_order'] as $key){if(!isset(beem360_sections()[$key]))continue;?><li data-key="<?php echo esc_attr($key); ?>"><span class="dashicons dashicons-menu"></span><label><input type="checkbox" name="beem360_options[enabled][<?php echo esc_attr($key); ?>]" value="1" <?php checked(!empty($o['enabled'][$key])); ?>> <?php echo esc_html(beem360_sections()[$key]); ?></label><code>[beem_<?php echo esc_html($key); ?>]</code></li><?php } ?></ul></div>
-      <div class="beem-admin-card"><h2>Section copy</h2><p>English, Arabic, and French are built in. Polylang selects the active language automatically.</p><?php foreach(beem360_defaults()['copy'] as $key=>$langs){?><details><summary><?php echo esc_html(ucwords(str_replace('_',' ',$key))); ?></summary><div class="beem-admin-grid"><?php foreach(['en'=>'English','ar'=>'العربية','fr'=>'Français'] as $lang=>$label){?><label><span><?php echo esc_html($label); ?></span><textarea rows="3" name="beem360_options[copy][<?php echo esc_attr($key); ?>][<?php echo esc_attr($lang); ?>]" dir="<?php echo $lang==='ar'?'rtl':'ltr'; ?>"><?php echo esc_textarea($o['copy'][$key][$lang]??''); ?></textarea></label><?php } ?></div></details><?php } ?></div>
-      </div><div data-admin-panel="items" hidden><div class="beem-admin-card beem-repeaters-card"><h2>Repeatable content</h2><p>Drag items to reorder. Open a row to edit languages, images, icons, and links.</p><?php foreach(beem360_repeater_schemas() as $group=>$schema)beem360_admin_repeater($group,$schema,(array)($o['items'][$group]??[])); ?></div></div><div data-admin-panel="contact" hidden>
-      <div class="beem-admin-card"><h2>Global images</h2><p>The initial images come from the supplied design.</p><div class="beem-admin-grid"><?php foreach(['logo'=>'Header & footer logo','hero_primary'=>'Hero primary screenshot','hero_secondary'=>'Hero secondary screenshot','cta_logo'=>'CTA logo'] as $key=>$label){?><label><span><?php echo esc_html($label); ?></span><div class="beem-media-field"><input name="beem360_options[media][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($o['media'][$key]??''); ?>"><button type="button" class="button beem-choose-media">Choose image</button><div class="beem-media-preview"><img src="<?php echo esc_url($o['media'][$key]??''); ?>" alt=""></div></div></label><?php } ?></div></div>
-      <div class="beem-admin-card"><h2>Account links & email delivery</h2><p>Footer links are managed as repeatable items in the previous tab.</p><div class="beem-admin-grid"><?php foreach(['admin_email'=>'Notification email','from_email'=>'Reply-from email','from_name'=>'Reply-from name','login_url'=>'Login URL','register_url'=>'Register URL'] as $key=>$label){?><label><span><?php echo esc_html($label); ?></span><input class="regular-text" name="beem360_options[<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($o[$key]); ?>"></label><?php } ?></div></div></div>
-      <div class="beem-sticky-save"><button type="submit" class="button button-secondary beem-restore-defaults" name="beem360_options[restore_default_content]" value="1" formnovalidate>Restore default content</button><?php submit_button('Save all theme settings','primary','submit',false); ?></div></form></div><?php
+    if(!current_user_can('manage_options'))return;
+    $o=beem360_options();$langs=['en'=>'English','ar'=>'العربية','fr'=>'Français']; ?>
+    <div class="wrap beem-admin">
+      <div class="beem-admin-hero"><div><span>BEEM VIEW 360</span><h1>Theme Control Center</h1><p>Manage every section, image, link, language, legal page, and repeatable item from one place.</p></div><div class="beem-save-hint"><span class="dashicons dashicons-saved"></span> Save after editing</div></div>
+      <form method="post" action="options.php"><?php settings_fields('beem360_settings'); ?>
+        <nav class="beem-admin-tabs"><button type="button" class="is-active" data-admin-tab="layout">Layout & copy</button><button type="button" data-admin-tab="items">Repeatable items</button><button type="button" data-admin-tab="legal">Legal pages</button><button type="button" data-admin-tab="contact">Images, links & email</button></nav>
+        <div data-admin-panel="layout">
+          <div class="beem-admin-card"><h2>Section order & visibility</h2><input type="hidden" id="beem-section-order" name="beem360_options[section_order]" value="<?php echo esc_attr(implode(',',$o['section_order'])); ?>"><ul id="beem-sortable"><?php foreach($o['section_order'] as $key){if(!isset(beem360_sections()[$key]))continue;?><li data-key="<?php echo esc_attr($key); ?>"><span class="dashicons dashicons-menu"></span><label><input type="checkbox" name="beem360_options[enabled][<?php echo esc_attr($key); ?>]" value="1" <?php checked(!empty($o['enabled'][$key])); ?>> <?php echo esc_html(beem360_sections()[$key]); ?></label><code>[beem_<?php echo esc_html($key); ?>]</code></li><?php } ?></ul></div>
+          <div class="beem-admin-card"><h2>Section copy</h2><p>Long-form fields use the text editor. Press Enter for a line break or leave a blank line to begin a new paragraph. Titles remain lightweight multiline fields.</p>
+            <?php foreach(beem360_defaults()['copy'] as $key=>$default_langs){$is_editor=in_array($key,beem360_copy_editor_keys(),true);?><details><summary><?php echo esc_html(ucwords(str_replace('_',' ',$key))); ?></summary><div class="beem-admin-grid <?php echo $is_editor?'beem-editor-grid':''; ?>"><?php foreach($langs as $lang=>$label){$value=(string)($o['copy'][$key][$lang]??'');?><div class="beem-language-field" dir="<?php echo $lang==='ar'?'rtl':'ltr'; ?>"><b><?php echo esc_html($label); ?></b><?php if($is_editor){beem360_admin_copy_editor($key,$lang,$value);}else{?><textarea rows="3" name="beem360_options[copy][<?php echo esc_attr($key); ?>][<?php echo esc_attr($lang); ?>]"><?php echo esc_textarea($value); ?></textarea><?php } ?></div><?php } ?></div></details><?php } ?>
+          </div>
+        </div>
+        <div data-admin-panel="items" hidden><div class="beem-admin-card beem-repeaters-card"><h2>Repeatable content</h2><p>Drag items to reorder. Description fields support line breaks; chip and bullet fields use one item per line.</p><?php foreach(beem360_repeater_schemas() as $group=>$schema)beem360_admin_repeater($group,$schema,(array)($o['items'][$group]??[])); ?></div></div>
+        <div data-admin-panel="legal" hidden>
+          <div class="beem-admin-card"><h2>Privacy and terms pages</h2><p>Edit the built-in legal-page starter content for your business and jurisdiction before publishing. Formatting, headings, lists, links, and paragraph breaks are supported.</p><div class="beem-legal-admin-links"><a href="<?php echo esc_url(beem360_legal_url('privacy')); ?>" target="_blank">View Privacy Policy <span class="dashicons dashicons-external"></span></a><a href="<?php echo esc_url(beem360_legal_url('terms')); ?>" target="_blank">View Terms & Conditions <span class="dashicons dashicons-external"></span></a></div>
+            <?php foreach(['privacy'=>'Privacy Policy','terms'=>'Terms & Conditions'] as $type=>$heading){?><section class="beem-legal-editor-section"><h3><?php echo esc_html($heading); ?></h3><?php foreach($langs as $lang=>$label){$doc=$o['legal'][$type]??[];?><details><summary><?php echo esc_html($label); ?></summary><div class="beem-legal-meta"><label><span>Page title</span><input type="text" name="beem360_options[legal][<?php echo esc_attr($type); ?>][title][<?php echo esc_attr($lang); ?>]" value="<?php echo esc_attr($doc['title'][$lang]??''); ?>"></label><label><span>Introduction</span><textarea rows="3" name="beem360_options[legal][<?php echo esc_attr($type); ?>][intro][<?php echo esc_attr($lang); ?>]"><?php echo esc_textarea($doc['intro'][$lang]??''); ?></textarea></label><label><span>Updated label</span><input type="text" name="beem360_options[legal][<?php echo esc_attr($type); ?>][updated][<?php echo esc_attr($lang); ?>]" value="<?php echo esc_attr($doc['updated'][$lang]??''); ?>"></label></div><div class="beem-legal-body-editor" dir="<?php echo $lang==='ar'?'rtl':'ltr'; ?>"><?php beem360_admin_legal_editor($type,$lang,(string)($doc['content'][$lang]??'')); ?></div></details><?php } ?></section><?php } ?>
+          </div>
+        </div>
+        <div data-admin-panel="contact" hidden>
+          <div class="beem-admin-card"><h2>Global images</h2><p>The initial images come from the supplied design.</p><div class="beem-admin-grid"><?php foreach(['logo'=>'Header & footer logo','hero_primary'=>'Hero primary screenshot','hero_secondary'=>'Hero secondary screenshot','cta_logo'=>'CTA logo'] as $key=>$label){?><label><span><?php echo esc_html($label); ?></span><div class="beem-media-field"><input name="beem360_options[media][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($o['media'][$key]??''); ?>"><button type="button" class="button beem-choose-media">Choose image</button><div class="beem-media-preview"><img src="<?php echo esc_url($o['media'][$key]??''); ?>" alt=""></div></div></label><?php } ?></div></div>
+          <div class="beem-admin-card"><h2>Account links & email delivery</h2><p>Footer links are managed as repeatable items in the previous tab.</p><div class="beem-admin-grid"><?php foreach(['admin_email'=>'Notification email','from_email'=>'Reply-from email','from_name'=>'Reply-from name','login_url'=>'Login URL','register_url'=>'Register URL'] as $key=>$label){?><label><span><?php echo esc_html($label); ?></span><input class="regular-text" name="beem360_options[<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($o[$key]); ?>"></label><?php } ?></div></div>
+        </div>
+        <div class="beem-sticky-save"><button type="submit" class="button button-secondary beem-restore-defaults" name="beem360_options[restore_default_content]" value="1" formnovalidate>Restore default content</button><?php submit_button('Save all theme settings','primary','submit',false); ?></div>
+      </form>
+    </div><?php
 }
 
 function beem360_mail_page(): void {
