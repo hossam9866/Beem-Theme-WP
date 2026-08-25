@@ -367,10 +367,15 @@ function beem360_legal_document(string $type, string $lang = ''): array {
     return is_array($document)?beem360_localized_for_language($document,$lang):[];
 }
 
-function beem360_legal_url(string $type): string {
+function beem360_legal_url(string $type, string $lang = ''): string {
     $slug=$type==='terms'?'terms-and-conditions':'privacy-policy';
-    if((string)get_option('permalink_structure')==='')return add_query_arg('beem_legal',$type,beem360_home_url());
-    return trailingslashit(beem360_home_url()).$slug.'/';
+    $home=beem360_home_url();
+    if($lang!==''&&function_exists('pll_home_url')){
+        $localized_home=pll_home_url($lang);
+        if(is_string($localized_home)&&$localized_home!=='')$home=trailingslashit($localized_home);
+    }
+    if((string)get_option('permalink_structure')==='')return add_query_arg('beem_legal',$type,$home);
+    return trailingslashit($home).$slug.'/';
 }
 
 function beem360_footer_link_url(array $item): string {
@@ -502,9 +507,48 @@ add_filter('body_class', 'beem360_body_classes');
 
 function beem360_language_links(): string {
     if (!function_exists('pll_the_languages')) { return ''; }
-    $languages = pll_the_languages(['raw'=>1, 'hide_if_empty'=>0, 'hide_if_no_translation'=>1]);
+    $queried_id=(int)get_queried_object_id();
+    $args=['raw'=>1,'hide_if_empty'=>0,'hide_if_no_translation'=>0];
+    if(is_singular()&&$queried_id>0)$args['post_id']=$queried_id;
+    $languages=pll_the_languages($args);
     if (!is_array($languages)) { return ''; }
-    $languages = array_filter($languages, static fn($language) => !empty($language['url']) && empty($language['no_translation']));
+
+    $current=function_exists('pll_current_language')?(string)pll_current_language('slug'):beem360_lang();
+    $legal_type=(string)get_query_var('beem_legal');
+    if(in_array($legal_type,['privacy','terms'],true)){
+        foreach($languages as &$language){
+            $slug=(string)($language['slug']??'');
+            if($slug==='')continue;
+            $language['url']=beem360_legal_url($legal_type,$slug);
+            $language['no_translation']=false;
+            $language['current_lang']=$slug===$current;
+        }
+        unset($language);
+    }elseif(is_singular()&&$queried_id>0&&function_exists('pll_get_post_translations')){
+        $translations=pll_get_post_translations($queried_id);
+        foreach($languages as &$language){
+            $slug=(string)($language['slug']??'');
+            $translation_id=absint(is_array($translations)?($translations[$slug]??0):0);
+            $url=$translation_id?(string)get_permalink($translation_id):'';
+            $language['url']=$url;
+            $language['no_translation']=$url==='';
+            $language['current_lang']=$slug===$current;
+        }
+        unset($language);
+    }elseif((is_category()||is_tag()||is_tax())&&$queried_id>0&&function_exists('pll_get_term_translations')){
+        $translations=pll_get_term_translations($queried_id);
+        foreach($languages as &$language){
+            $slug=(string)($language['slug']??'');
+            $translation_id=absint(is_array($translations)?($translations[$slug]??0):0);
+            $url=$translation_id?get_term_link($translation_id):'';
+            $language['url']=is_wp_error($url)?'':(string)$url;
+            $language['no_translation']=$language['url']==='';
+            $language['current_lang']=$slug===$current;
+        }
+        unset($language);
+    }
+
+    $languages=array_filter($languages,static fn($language): bool=>!empty($language['url'])&&empty($language['no_translation']));
     $alternatives = array_filter($languages, static fn($language) => empty($language['current_lang']));
     if (!$alternatives) { return ''; }
     $out = '<div class="dropdown beem-languages"><button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-globe2"></i> ' . esc_html(strtoupper(beem360_lang())) . '</button><ul class="dropdown-menu dropdown-menu-end">';
