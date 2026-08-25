@@ -378,20 +378,59 @@ function beem360_legal_url(string $type, string $lang = ''): string {
     return trailingslashit($home).$slug.'/';
 }
 
+function beem360_legal_content_page_id(string $type, string $lang = ''): int {
+    if(!in_array($type,['privacy','terms'],true))return 0;
+    $lang=$lang!==''?$lang:(function_exists('pll_current_language')?(string)pll_current_language('slug'):beem360_lang());
+    static $cache=[];
+    $cache_key=$type.'|'.$lang;
+    if(isset($cache[$cache_key]))return $cache[$cache_key];
+
+    $direct_tags=$type==='privacy'?['beem_privacy_policy']:['beem_terms_conditions','beem_terms_and_conditions'];
+    $pages=get_posts(['post_type'=>'page','post_status'=>'publish','posts_per_page'=>-1,'orderby'=>'menu_order ID','order'=>'ASC','suppress_filters'=>true]);
+    $fallback_id=0;
+    foreach($pages as $page){
+        $matches=false;
+        foreach($direct_tags as $tag)if(has_shortcode((string)$page->post_content,$tag)){$matches=true;break;}
+        if(!$matches&&has_shortcode((string)$page->post_content,'beem_legal')){
+            preg_match_all('/\[beem_legal\b([^\]]*)\]/i',(string)$page->post_content,$shortcodes);
+            foreach($shortcodes[1]??[] as $attributes){
+                $parsed=shortcode_parse_atts((string)$attributes);
+                if(is_array($parsed)&&sanitize_key((string)($parsed['type']??'privacy'))===$type){$matches=true;break;}
+            }
+        }
+        if(!$matches)continue;
+        $page_id=(int)$page->ID;
+        $page_lang=function_exists('pll_get_post_language')?(string)pll_get_post_language($page_id,'slug'):'';
+        if($page_lang===$lang)return $cache[$cache_key]=$page_id;
+        if(!$fallback_id)$fallback_id=$page_id;
+    }
+
+    if($fallback_id&&function_exists('pll_get_post')){
+        $translated_id=absint(pll_get_post($fallback_id,$lang));
+        if($translated_id)return $cache[$cache_key]=$translated_id;
+    }
+    return $cache[$cache_key]=0;
+}
+
 function beem360_footer_link_url(array $item): string {
     $page_id=absint($item['page']??0);
+    $lang=function_exists('pll_current_language')?(string)pll_current_language('slug'):beem360_lang();
     if($page_id){
-        $lang=function_exists('pll_current_language')?(string)pll_current_language('slug'):beem360_lang();
         if(function_exists('pll_get_post')){
             $translated_id=absint(pll_get_post($page_id,$lang));
             if($translated_id)$page_id=$translated_id;
+            elseif(function_exists('pll_get_post_language')&&pll_get_post_language($page_id,'slug'))$page_id=0;
         }
-        $page_url=(string)get_permalink($page_id);
+        $page_url=$page_id?(string)get_permalink($page_id):'';
         if($page_url!=='')return $page_url;
     }
     $url=(string)($item['url']??'#');
-    if($url==='@privacy')return beem360_legal_url('privacy');
-    if($url==='@terms')return beem360_legal_url('terms');
+    if(in_array($url,['@privacy','@terms'],true)){
+        $type=$url==='@terms'?'terms':'privacy';
+        $content_page_id=beem360_legal_content_page_id($type,$lang);
+        if($content_page_id){$content_page_url=(string)get_permalink($content_page_id);if($content_page_url!=='')return $content_page_url;}
+        return beem360_legal_url($type,$lang);
+    }
     return beem360_link_url($url);
 }
 
@@ -516,7 +555,7 @@ add_filter('body_class', 'beem360_body_classes');
 function beem360_language_links(): string {
     if (!function_exists('pll_the_languages')) { return ''; }
     $queried_id=(int)get_queried_object_id();
-    $args=['raw'=>1,'hide_if_empty'=>0,'hide_if_no_translation'=>0];
+    $args=['raw'=>1,'hide_if_empty'=>0,'hide_if_no_translation'=>1];
     if(is_singular()&&$queried_id>0)$args['post_id']=$queried_id;
     $languages=pll_the_languages($args);
     if (!is_array($languages)) { return ''; }
@@ -529,26 +568,6 @@ function beem360_language_links(): string {
             if($slug==='')continue;
             $language['url']=beem360_legal_url($legal_type,$slug);
             $language['no_translation']=false;
-            $language['current_lang']=$slug===$current;
-        }
-        unset($language);
-    }elseif(is_singular()&&$queried_id>0&&function_exists('pll_get_post')){
-        foreach($languages as &$language){
-            $slug=(string)($language['slug']??'');
-            $translation_id=$slug!==''?absint(pll_get_post($queried_id,$slug)):0;
-            $url=$translation_id?(string)get_permalink($translation_id):'';
-            $language['url']=$url;
-            $language['no_translation']=$url==='';
-            $language['current_lang']=$slug===$current;
-        }
-        unset($language);
-    }elseif((is_category()||is_tag()||is_tax())&&$queried_id>0&&function_exists('pll_get_term')){
-        foreach($languages as &$language){
-            $slug=(string)($language['slug']??'');
-            $translation_id=$slug!==''?absint(pll_get_term($queried_id,$slug)):0;
-            $url=$translation_id?get_term_link($translation_id):'';
-            $language['url']=is_wp_error($url)?'':(string)$url;
-            $language['no_translation']=$language['url']==='';
             $language['current_lang']=$slug===$current;
         }
         unset($language);
