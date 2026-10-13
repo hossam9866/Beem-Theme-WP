@@ -7,7 +7,7 @@
     <a class="navbar-brand beem-brand" href="<?php echo esc_url(beem360_home_url()); ?>">
       <?php if (has_custom_logo()) { the_custom_logo(); } else { ?><img src="<?php echo beem360_media('logo'); ?>" alt="Beem View 360"><b>Beem View <i>360</i></b><?php } ?>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#beemNavLinks" aria-controls="beemNavLinks" aria-expanded="false"><span class="navbar-toggler-icon"></span></button>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#beemNavLinks" aria-controls="beemNavLinks" aria-expanded="false" aria-label="<?php esc_attr_e('Primary navigation','beem360'); ?>"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse" id="beemNavLinks">
       <ul class="navbar-nav me-auto ms-xl-4 beem-nav-links"><?php foreach(beem360_items('navigation') as $item){ ?><li class="nav-item"><a class="nav-link" href="<?php echo esc_url(beem360_link_url((string)($item['url']??'#'))); ?>"><?php echo esc_html($item['label']??''); ?></a></li><?php } ?></ul>
       <div class="beem-nav-actions d-flex align-items-center gap-2">

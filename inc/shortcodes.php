@@ -13,7 +13,7 @@ function beem360_lines(string $value): array {
 function beem360_device(string $primary, string $alt, string $secondary = ''): void { ?>
   <div class="beem-device beem-spot">
     <div class="beem-device-rail"><img src="<?php echo beem360_asset('02-brand-mark.png'); ?>" alt=""><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="beem-device-body"><div class="beem-shot"><img src="<?php echo beem360_image_url($primary); ?>" alt="<?php echo esc_attr($alt); ?>"></div><?php if ($secondary) { ?><div class="beem-shot beem-shot-scroll"><img src="<?php echo beem360_image_url($secondary); ?>" alt=""></div><?php } ?></div>
+    <div class="beem-device-body"><div class="beem-shot"><img src="<?php echo beem360_image_url($primary); ?>" alt="<?php echo esc_attr($alt); ?>"></div><?php if ($secondary) { ?><div class="beem-shot beem-shot-scroll" tabindex="0" role="region" aria-label="<?php echo esc_attr($alt); ?>"><img src="<?php echo beem360_image_url($secondary); ?>" alt=""></div><?php } ?></div>
   </div><?php
 }
 
