@@ -5,7 +5,7 @@
 <nav id="beemNav" class="beem-nav navbar navbar-expand-xl fixed-top" aria-label="<?php esc_attr_e('Primary navigation','beem360'); ?>">
   <div class="container-fluid px-xl-5">
     <a class="navbar-brand beem-brand" href="<?php echo esc_url(beem360_home_url()); ?>">
-      <?php if (has_custom_logo()) { the_custom_logo(); } else { ?><img src="<?php echo beem360_media('logo'); ?>" alt="Beem View 360"><b>Beem View <i>360</i></b><?php } ?>
+      <?php if (has_custom_logo()) { the_custom_logo(); } else { ?><img src="<?php echo beem360_media('logo'); ?>" alt=""><b class="beem-brand-name">Beem View 360</b><?php } ?>
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#beemNavLinks" aria-controls="beemNavLinks" aria-expanded="false" aria-label="<?php esc_attr_e('Primary navigation','beem360'); ?>"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse" id="beemNavLinks">

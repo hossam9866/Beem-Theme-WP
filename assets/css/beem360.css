@@ -359,3 +359,6 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}body.beem360-theme{font-fami
   :where(.beem-hero-visual,.beem-solution,#ai .beem-feature-visual,#delivery .beem-feature-visual,.beem-cta)::before,
   :where(.beem-hero-visual,.beem-solution,#ai .beem-feature-visual,#delivery .beem-feature-visual,.beem-cta)::after { animation: none !important; translate: none; }
 }
+
+.beem-nav .navbar-brand.beem-brand{direction:ltr}.beem-nav .beem-brand .beem-brand-name{color:#132433;font-size:22px;font-weight:800;letter-spacing:0;white-space:nowrap}.beem-nav .beem-brand>img{width:38px;height:38px;object-fit:contain}
+@media(max-width:479.98px){.beem-nav .beem-brand .beem-brand-name{font-size:18px}}
