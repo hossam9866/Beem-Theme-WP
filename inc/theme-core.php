@@ -477,7 +477,18 @@ function beem360_flush_legal_rewrite_rules(): void {
 add_action('after_switch_theme','beem360_flush_legal_rewrite_rules');
 
 function beem360_media(string $key): string {
-    return esc_url((string) (beem360_options()['media'][$key] ?? ''));
+    return beem360_versioned_image_url((string) (beem360_options()['media'][$key] ?? ''));
+}
+
+function beem360_versioned_image_url(string $url): string {
+    $prefix = BEEM360_URI . '/assets/images/';
+    if (str_starts_with($url, $prefix)) {
+        $file = explode('?', substr($url, strlen($prefix)), 2)[0];
+        if ($file !== '' && !str_contains($file, '..') && file_exists(BEEM360_DIR . '/assets/images/' . $file)) {
+            $url = add_query_arg('ver', beem360_asset_version('assets/images/' . $file), $url);
+        }
+    }
+    return esc_url($url);
 }
 
 function beem360_asset_version(string $relative_path): string {
@@ -486,12 +497,12 @@ function beem360_asset_version(string $relative_path): string {
 }
 
 function beem360_asset(string $file): string {
-    return esc_url(BEEM360_URI . '/assets/images/' . ltrim($file, '/'));
+    return beem360_versioned_image_url(BEEM360_URI . '/assets/images/' . ltrim($file, '/'));
 }
 
 function beem360_image_url(string $value): string {
     if (!$value) { return ''; }
-    return esc_url(preg_match('~^https?://~i', $value) ? $value : BEEM360_URI . '/assets/images/' . ltrim($value, '/'));
+    return beem360_versioned_image_url(preg_match('~^https?://~i', $value) ? $value : BEEM360_URI . '/assets/images/' . ltrim($value, '/'));
 }
 
 function beem360_login_url(): string {
